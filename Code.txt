@@ -1,0 +1,93 @@
+c:\Users\puhal\OneDrive\3\docker-hadoop-spark-workbench>docker ps
+CONTAINER ID   IMAGE                                             COMMAND                  CREATED        STATUS                  PORTS                                                      NAMES
+fb0a3813c47f   bde2020/spark-worker:2.1.0-hadoop2.8-hive-java8   "entrypoint.sh /bin/…"   11 hours ago   Up 11 hours (healthy)   0.0.0.0:8081->8081/tcp                                     docker-hadoop-spark-workbench-spark-worker-1
+b9c492391e2a   bde2020/hadoop-datanode:1.1.0-hadoop2.8-java8     "/entrypoint.sh /run…"   11 hours ago   Up 11 hours (healthy)   0.0.0.0:50075->50075/tcp                                   docker-hadoop-spark-workbench-datanode-1
+5e8924895682   bde2020/hadoop-namenode:1.1.0-hadoop2.8-java8     "/entrypoint.sh /run…"   11 hours ago   Up 11 hours (healthy)   0.0.0.0:50070->50070/tcp                                   namenode
+44e84203184c   bde2020/spark-notebook:2.1.0-hadoop2.8-hive       "/entrypoint.sh /run…"   11 hours ago   Up 11 hours             0.0.0.0:9001->9001/tcp                                     spark-notebook
+7fbe8296bf81   bde2020/spark-master:2.1.0-hadoop2.8-hive-java8   "entrypoint.sh /bin/…"   11 hours ago   Up 11 hours (healthy)   0.0.0.0:7077->7077/tcp, 6066/tcp, 0.0.0.0:8080->8080/tcp   spark-master
+8e71aa020e04   bde2020/hdfs-filebrowser:3.11                     "/entrypoint.sh buil…"   11 hours ago   Up 11 hours             0.0.0.0:8088->8088/tcp                                     docker-hadoop-spark-workbench-hue-1
+
+c:\Users\puhal\OneDrive\3\docker-hadoop-spark-workbench>docker cp c:/users/puhal/downloads/vim1.txt b9c492391e2a:/
+c:\Users\puhal\OneDrive\3\docker-hadoop-spark-workbench>docker cp c:/users/puhal/downloads/vim2.txt b9c492391e2a:/
+c:\Users\puhal\OneDrive\3\docker-hadoop-spark-workbench>docker cp c:/users/puhal/downloads/vim3.txt b9c492391e2a:/
+c:\Users\puhal\OneDrive\3\docker-hadoop-spark-workbench>docker cp c:/users/puhal/downloads/vim4.txt b9c492391e2a:/
+
+c:\Users\puhal\OneDrive\3\docker-hadoop-spark-workbench>docker exec -it b9c492391e2a bash
+root@b9c492391e2a:/# ls
+bin   dev            etc     hadoop-data  lib    media  opt   root  run.sh  srv  tmp  var       vim2.txt  vim4.txt
+boot  entrypoint.sh  hadoop  home         lib64  mnt    proc  run   sbin    sys  usr  vim1.txt  vim3.txt
+
+c:\Users\puhal\OneDrive\3\docker-hadoop-spark-workbench>docker exec -it b9c492391e2a bash
+root@b9c492391e2a:/# hdfs dfs -copyFromLocal vim1.txt /user/cloudera/
+root@b9c492391e2a:/# hdfs dfs -copyFromLocal vim2.txt /user/cloudera/
+root@b9c492391e2a:/# hdfs dfs -copyFromLocal vim3.txt /user/cloudera/
+root@b9c492391e2a:/# hdfs dfs -copyFromLocal vim4.txt /user/cloudera/
+
+• После того, как файлы окажутся на HDFS попробуйте выполнить команду, которая выводит содержимое папки. Особенно обратите внимание на права доступа к вашим файлам.
+
+root@b9c492391e2a:/# hdfs dfs -ls /user/cloudera/
+Found 4 items
+-rw-r--r--   3 root cloudera     736519 2022-11-24 06:33 /user/cloudera/vim1.txt
+-rw-r--r--   3 root cloudera     770324 2022-11-24 06:34 /user/cloudera/vim2.txt
+-rw-r--r--   3 root cloudera     843205 2022-11-24 06:35 /user/cloudera/vim3.txt
+-rw-r--r--   3 root cloudera     697960 2022-11-24 06:35 /user/cloudera/vim4.txt
+root@b9c492391e2a:/#
+
+
+• Далее сожмите все 4 тома в 1 файл.
+
+root@b9c492391e2a:/# ls
+bin   dev            etc     hadoop-data  lib    media  opt   root  run.sh  srv  tmp  var       vim2.txt  vim4.txt
+boot  entrypoint.sh  hadoop  home         lib64  mnt    proc  run   sbin    sys  usr  vim1.txt  vim3.txt  vim_all.txt
+
+root@b9c492391e2a:/# hdfs dfs -copyFromLocal vim_all.txt /user/cloudera/
+root@b9c492391e2a:/# hdfs dfs -ls /user/cloudera/
+Found 5 items
+-rw-r--r--   3 root cloudera     736519 2022-11-24 06:33 /user/cloudera/vim1.txt
+-rw-r--r--   3 root cloudera     770324 2022-11-24 06:34 /user/cloudera/vim2.txt
+-rw-r--r--   3 root cloudera     843205 2022-11-24 06:35 /user/cloudera/vim3.txt
+-rw-r--r--   3 root cloudera     697960 2022-11-24 06:35 /user/cloudera/vim4.txt
+-rw-r--r--   3 root cloudera    3048008 2022-11-24 10:37 /user/cloudera/vim_all.txt
+
+• Теперь давайте изменим права доступа к нашему файлу. Чтобы с нашим файлом могли взаимодействовать коллеги, установите режим доступа,
+ который дает полный доступ для владельца файла, а для сторонних пользователей возможность читать и выполнять.
+
+root@b9c492391e2a:/# hdfs dfs -chmod 755 /user/cloudera/vim_all.txt
+
+• Попробуйте заново использовать команду для вывода содержимого папки и обратите внимание как изменились права доступа к файлу.
+
+root@b9c492391e2a:/# hdfs dfs -ls /user/cloudera/
+Found 5 items
+-rw-r--r--   3 root cloudera     736519 2022-11-24 06:33 /user/cloudera/vim1.txt
+-rw-r--r--   3 root cloudera     770324 2022-11-24 06:34 /user/cloudera/vim2.txt
+-rw-r--r--   3 root cloudera     843205 2022-11-24 06:35 /user/cloudera/vim3.txt
+-rw-r--r--   3 root cloudera     697960 2022-11-24 06:35 /user/cloudera/vim4.txt
+-rwxr-xr-x   3 root cloudera    3048008 2022-11-24 10:37 /user/cloudera/vim_all.txt
+
+• Теперь попробуем вывести на экран информацию о том, сколько места на диске занимает наш файл. Желательно, чтобы размер файла был удобночитаемым.
+
+root@b9c492391e2a:/# hdfs dfs -du -h /user/cloudera/vim_all.txt
+2.9 M  /user/cloudera/vim_all.txt
+
+• На экране вы можете заметить 2 числа. Первое число – это фактический размер файла, а второе – это занимаемое файлом место на диске с учетом репликации. 
+По умолчанию в данной версии HDFS эти числа будут одинаковы – это означает, что никакой репликации нет – нас это не очень устраивает, мы хотели бы, 
+чтобы у наших файлов существовали резервные копии, поэтому напишите команду, которая изменит фактор репликации на 2.
+
+root@b9c492391e2a:/# hdfs dfs -setrep -R -w /user/cloudera/vim_all.txt
+
+В Докере выводит только одно число - 2,9 мБ. Фактор репликации не меняется, или меняется необоснованно долго. Писал об этом в Телеграмм:
+
+"Игорь Пухалев, [24.11.2022 14:50]
+Обратите внимание, что если вы пытаетесь установить коэффициент репликации на число, превышающее число узлов, команда будет продолжать пытаться,
+ пока не сможет реплицировать нужное количество блоков. поэтому он будет ждать, пока вы добавите дополнительные узлы в кластер.
+Игорь Пухалев, [24.11.2022 14:51]
+я так понимаю у нас всего один узел в кластере - datanode-1. Вопрос - я чего-то не понимаю, или задание некорректно?"
+
+• Повторите команду, которая выводит информацию о том, какое место на диске занимает файл и убедитесь, что изменения произошли.
+
+не выполнено по причине невыполнения предидущего задания.
+
+• Напишите команду, которая подсчитывает количество строк в вашем файле
+
+root@b9c492391e2a:/# hdfs dfs -cat /user/cloudera/vim_all.txt | wc -l
+10272
